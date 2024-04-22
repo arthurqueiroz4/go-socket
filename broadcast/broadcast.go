@@ -3,6 +3,7 @@ package broadcast
 import (
 	"fmt"
 	"net"
+	"time"
 )
 
 type Broadcast struct {
@@ -27,7 +28,8 @@ func (b *Broadcast) Send(m string, from net.Conn) {
 		if recipient.conn == from {
 			continue
 		}
-		recipient.conn.Write([]byte(fmt.Sprintf("%s:\n\t%s", sender, m)))
+		
+		recipient.conn.Write([]byte(fmt.Sprintf("%s às %s:\n\t%s", sender, time.Now().Format("02/01/06 Mon 03:04"), m)))
 	}
 }
 
