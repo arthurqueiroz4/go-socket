@@ -5,38 +5,47 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strings"
+
+	"github.com/arthurqueiroz04/go-socket/broadcast"
 )
 
-func handler(conn net.Conn) {
+func getNameFromConn(c net.Conn) string {
+	msg := "Digite seu nome: "
+	c.Write([]byte(msg))
+	name, _ := bufio.NewReader(c).ReadString('\n')
+	return strings.TrimSpace(name)
+}
+
+func handler(conn net.Conn, bc *broadcast.Broadcast) {
 	for {
 		m, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
-				fmt.Println("Connection closed")
+				bc.Remove(conn)
 				conn.Close()
 				return
 			}
 			fmt.Println("Error reading from connection", err)
 			return
 		}
-		_, err = conn.Write([]byte(m))
-		if err != nil {
-			fmt.Println("Error writing to connection")
-			return
-		}
-		fmt.Printf("%v %q\n", conn.RemoteAddr(), m)
+		bc.Send(m, conn)
 	}
 }
 
 func main() {
-	fmt.Println("Listening on port 8080")
+	fmt.Println("Escutando a porta 8000")
 
 	ln, _ := net.Listen("tcp", ":8000")
 
+	bc := broadcast.New()
+
 	for {
-		conn, _ := ln.Accept()
-		fmt.Println("Connection accepted")
-		go handler(conn)
+		c, _ := ln.Accept()
+		name := getNameFromConn(c)
+		fmt.Println("Conexão aceita com", name)
+		bc.Add(name, c)
+		go handler(c, bc)
 	}
 
 }
