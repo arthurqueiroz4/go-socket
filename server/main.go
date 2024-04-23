@@ -12,8 +12,6 @@ import (
 )
 
 func getNameFromConn(c net.Conn) string {
-	msg := "Digite seu nome: "
-	c.Write([]byte(msg))
 	name, _ := bufio.NewReader(c).ReadString('\n')
 	return strings.TrimSpace(name)
 }

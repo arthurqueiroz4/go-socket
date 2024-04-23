@@ -3,7 +3,9 @@ package broadcast
 import (
 	"fmt"
 	"net"
+	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type Broadcast struct {
@@ -22,15 +24,33 @@ func New() *Broadcast {
 }
 
 func (b *Broadcast) Send(m string, from net.Conn) {
+	err := b.validateMessage(m)
+	if err != nil {
+		from.Write([]byte(err.Error()))
+		return
+	}
+	
 	sender := b.getSender(from)
 
 	for _, recipient := range b.c {
 		if recipient.conn == from {
 			continue
 		}
-		
-		recipient.conn.Write([]byte(fmt.Sprintf("%s às %s:\n\t%s\000", sender, time.Now().Format("02/01/06 Mon 03:04"), m)))
+		recipient.conn.Write([]byte(fmt.Sprintf("%s às %s:\n\t%s\000", sender, time.Now().Format("02/01/06 03:04 Mon"), m)))
 	}
+}
+
+func (b *Broadcast) validateMessage(m string) error {
+	m = strings.TrimSpace(m)
+	if m == "" {
+		return fmt.Errorf("a mensagem não pode estar vazia\000")
+	}
+
+	if utf8.RuneCountInString(m) > 100 {
+		return fmt.Errorf("a mensagem não pode ter mais do que 100 caracteres\000")
+	}
+
+	return nil
 }
 
 func (b *Broadcast) getSender(from net.Conn) string {
