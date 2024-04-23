@@ -2,12 +2,13 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"net"
 	"strings"
 
-	"github.com/arthurqueiroz04/go-socket/broadcast"
+	"github.com/arthurqueiroz04/go-socket/server/broadcast"
 )
 
 func getNameFromConn(c net.Conn) string {
@@ -34,9 +35,13 @@ func handler(conn net.Conn, bc *broadcast.Broadcast) {
 }
 
 func main() {
-	fmt.Println("Escutando a porta 8000")
+	var port string
+	flag.StringVar(&port, "port", ":8000", "Porta que será escutada pelo programa")
+	flag.Parse()
 
-	ln, _ := net.Listen("tcp", ":8000")
+	fmt.Println("Escutando a porta", port)
+
+	ln, _ := net.Listen("tcp", port)
 
 	bc := broadcast.New()
 
