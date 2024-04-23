@@ -32,11 +32,15 @@ func (b *Broadcast) Send(m string, from net.Conn) {
 	
 	sender := b.getSender(from)
 
+	msg := fmt.Sprintf("%s às %s:\n\t%s\000", sender, time.Now().Format("02/01/06 03:04 Mon"), m)
+
+	fmt.Println(msg)
+
 	for _, recipient := range b.c {
 		if recipient.conn == from {
 			continue
 		}
-		recipient.conn.Write([]byte(fmt.Sprintf("%s às %s:\n\t%s\000", sender, time.Now().Format("02/01/06 03:04 Mon"), m)))
+		recipient.conn.Write([]byte(msg))
 	}
 }
 
